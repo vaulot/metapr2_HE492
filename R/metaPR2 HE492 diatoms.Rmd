@@ -1,0 +1,122 @@
+---
+title: "MetaPR2 - Maps - HE492"
+date: "`r Sys.Date()`"
+output:
+  rmdformats::readthedown:
+    highlight: kate
+---
+
+# Load sources
+
+* Do not forget to use correct name for views...
+
+```{r, message=FALSE, warning=FALSE}
+
+source("init.R")
+source("functions_map.R")
+```
+
+# Read the metaPR2 data
+
+```{r}
+df <- rio::import(df_he492_file_name, guess_max = 100000)
+samples_with_taxa <- rio::import(samples_with_taxa_file_name)
+samples_without_taxa <- rio::import(samples_without_taxa_file_name)
+samples <- bind_rows(samples_with_taxa, samples_without_taxa)
+```
+
+
+# Cultures
+
+```{r}
+cultures <- rio::import(cultures_file_name)
+
+
+  # filter(!is.na(asv_code)) %>%  
+  # group_by(asv_code, sequence_matching) %>% 
+  # # Count the number of cells corresponding to same asv and same species
+  # summarize(n_cells = n()) %>% 
+  # # Keep for each asv the species occuring most often (if ties, take line randomly)  
+  # dplyr::slice_max(n_cells, n=1, with_ties=FALSE) %>% 
+  # ungroup()
+
+
+
+# fasta_cells <- inner_join(cells, fasta, by = c("asv_code" = "seq_name"))
+
+df_map <- inner_join(cultures, df, by = c("asv_code"="asv_code"))
+
+# Group by single cell adn get info about the first asv
+
+df_map <- df_map %>% 
+  mutate(label = str_c(species_Luka,he492_asv_matching,culture_matching, sep = " - ")) %>%  
+  group_by(file_code, label) %>% 
+  summarise(n_reads_label = sum(n_reads))  %>% 
+  ungroup()
+
+df_map <- inner_join(samples_with_taxa, df_map) %>% 
+  mutate(n_reads_label_pct =  n_reads_label/n_reads_taxa*100) %>% 
+  filter(!is.na(latitude))
+
+samples <- samples %>% 
+  filter(!is.na(latitude))
+
+
+# Plot the maps -----------------------------------------------------------
+
+
+
+map_metapr2 (df_map, samples)
+
+  
+```
+
+# Metabarcodes HE492
+
+```{r}
+metab <- rio::import(metabarcodes_file_name)
+
+
+  # filter(!is.na(asv_code)) %>%  
+  # group_by(asv_code, sequence_matching) %>% 
+  # # Count the number of cells corresponding to same asv and same species
+  # summarize(n_cells = n()) %>% 
+  # # Keep for each asv the species occuring most often (if ties, take line randomly)  
+  # dplyr::slice_max(n_cells, n=1, with_ties=FALSE) %>% 
+  # ungroup()
+
+
+
+# fasta_cells <- inner_join(cells, fasta, by = c("asv_code" = "seq_name"))
+
+df_map <- inner_join(metab, df, by = c("asv_code"="asv_code"))
+
+# Group by single cell adn get info about the first asv
+
+df_map <- df_map %>% 
+  mutate(label = str_c(species_Luka,he492_asv_matching, sep = " - ")) %>%  
+  group_by(file_code, label) %>% 
+  summarise(n_reads_label = sum(n_reads))  %>% 
+  ungroup()
+
+df_map <- inner_join(samples_with_taxa, df_map) %>% 
+  mutate(n_reads_label_pct =  n_reads_label/n_reads_taxa*100) %>% 
+  filter(!is.na(latitude))
+
+samples <- samples %>% 
+  filter(!is.na(latitude))
+
+
+# Plot the maps -----------------------------------------------------------
+
+
+
+map_metapr2 (df_map, samples)
+
+  
+```
+
+
+
+
+

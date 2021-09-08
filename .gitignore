@@ -1,0 +1,9 @@
+.Rproj.user
+.Rhistory
+.RData
+.Ruserdata
+functions_db.R
+functions_metapr2.R
+mysql
+script_render_docs.R
+metaPR2 export.Rmd
